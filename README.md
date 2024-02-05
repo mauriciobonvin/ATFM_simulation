@@ -76,7 +76,7 @@ The structure of the simulation framework consist in 17 modules:
 
 \| Contains classes and functions to handle the equity mechanism from [C.G. Schuetz; S. Ruiz; E. Gringinger, C. Fabianek, T. Loruenser; “An auction-based mechanism for a privacy-preserving marketplace for ATFM slots”, 33rd Congress of the International Council of the Aeronautical Sciences, 2022].
 
-1.  **Dependencies**
+2.  **Dependencies**
 
 The package is run on Python version 3.10.9.
 
@@ -112,7 +112,7 @@ Version: 2.1
 
 Official documentation: <https://mesa.readthedocs.io/en/stable/>
 
-1.  **Parameter configuration**
+3.  **Parameter configuration**
 
 In file “setup.py” the following parameters have to be provided:
 
@@ -127,7 +127,7 @@ In file “setup.py” the following parameters have to be provided:
 | percentage_reduction_weight_map\_ | Data type: float                                                                  | Percentage reduction of the base value weight map.                                                                                                    |
 | bonus\_                           | Data type: float                                                                  | Percentage of bonus to share between market creators for the equity mechanism presented in credits_clearing.py                                        |
 
-1.  **Strategies**
+3.2.  **Strategies**
 
 In file “setup.py” the following strategies have to be instantiated. There can be one or more possible strategies to choose from:
 
@@ -142,8 +142,8 @@ In file “setup.py” the following strategies have to be instantiated. There c
 | Optimization_strategy      | Imported from “Optimization_strategy.py”. Define the strategy to execute the optimization algorithm.                                               | LinearAssignmentStrategy: defines the optimization solver as a Linear Assignment problem to maximize the utility.                                                                                                                                                                                             |
 | Equity_handler             | Imported from “equity_handler.py”. Define the strategy to handle the equity mechanism.                                                             | CreditsCLearingStrategy: defines the EquityHandler to be as described in [C.G. Schuetz; S. Ruiz; E. Gringinger, C. Fabianek, T. Loruenser; “An auction-based mechanism for a privacy-preserving marketplace for ATFM slots”, 33rd Congress of the International Council of the Aeronautical Sciences, 2022].  |
 
-1.  **Creating objects**
-    1.  **Creating Airline objects**
+4.  **Creating objects**
+    4.1.  **Creating Airline objects**
 
 When running the file “setup.py” the file “AirlineAgent.py” is imported. This file contains the class Airline that represents an airline with its name and number of flights. To create an airline object the following strategies have to be instantiated previously:
 
@@ -211,7 +211,7 @@ Here is an example on how to initialize an airline in the setup file: With the f
 
 *)*
 
-1.  **Creating Platform object**
+4.2.  **Creating Platform object**
 
 When running the file “setup.py” the file “PlatformAgent.py” is imported. This file contains the class Platform that represents the platform that contains the optimizer and the equity handler. To create this object the following strategies have to be instantiated previously:
 
@@ -236,7 +236,7 @@ Here is an example on how to initialize a platform agent in the setup file:
 
 *)*
 
-1.  **Create Flight schedule**
+4.3.  **Create Flight schedule**
 
 In the “setup.py” file the flight schedule have to be provided. An example of how to create the schedule is given by the following function.
 
@@ -260,7 +260,7 @@ In the “setup.py” file the flight schedule have to be provided. An example o
 
 *flight_schedule\_ = flights_schedule(list_airline_agents_,n_times_, starting_seed_)*
 
-1.  **Instantiate remaining strategies**
+4.4.  **Instantiate remaining strategies**
 
 The following strategies must be instantiated in the “setup.py” file and given as parameter to the simulation model as they are used to create the regulation at every step:
 
@@ -273,6 +273,6 @@ Example:
 
 *regulation_strategy\_ = RegulationStrategy.ReducedCapacityStrategy()*
 
-1.  **Run simulation**
+5.  **Run simulation**
 
 After the “setup.py” file was populated with the required parameters, instantiated the strategies and the agents and created the flight schedule, the file “main.py” can be run to perform the simulations.
