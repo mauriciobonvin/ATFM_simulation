@@ -1,19 +1,17 @@
+# import third party libraries
 import numpy as np
 np.set_printoptions(suppress=True, precision=2)
 import random
-
-import AirlineAgent
-
+# import own modules
+#Regulation modules
 import TimeAssignmentStrategy
 import WindowStrategy
 import RegulationStrategy
-
+# Airline modules
 import PriorityAssignmentStrategy
 import DesiredTimeStrategy
 import AssignMarginsStrategy
-
-import PlatformAgent
-
+# Platform modules
 import optimization_strategy
 import equity_handler
 
@@ -33,8 +31,6 @@ airlines_flights = { 'Airline_1': 10,
 # weight map parameters
 base_value_weight_map_ = 100
 percentage_reduction_weight_map_ = 0.1
-# equity parameter
-bonus_ = 0.1
 
 
 # strategies used here
@@ -46,13 +42,29 @@ desired_time_strategy = DesiredTimeStrategy.DesiredTimeRandomAssignmentStrategy(
 assign_margins_strategy = AssignMarginsStrategy.MarginsRandomAssignmentStrategy()
 # Platform agent strategies
 optimization_strategy_ = optimization_strategy.LinearAssignmentStrategy()
-equity_handler_ = equity_handler.CreditsCLearingStrategy()
+equity_handler_ = equity_handler.CreditsCLearingStrategy(bonus = 0.1, initial_credits = 100)
 
 # strategies used during simulation
 # Regulation strategies
 window_strategy_ = WindowStrategy.RandomWindowStrategy()
 regulation_strategy_ = RegulationStrategy.ReducedCapacityStrategy()
 
+
+class Airline:
+    def __init__(self,
+                 unique_id, 
+                 name, 
+                 number_of_flights, 
+                 priority_assignment_strategy, 
+                 desired_time_strategy, 
+                 assign_margins_strategy
+                ):
+        self.unique_id = unique_id
+        self.name = name
+        self.number_of_flights = number_of_flights
+        self.priority_assignment_strategy = priority_assignment_strategy
+        self.desired_time_strategy = desired_time_strategy
+        self.assign_margins_strategy = assign_margins_strategy
 
 # Create ariline agents
 def airline_agents(airlines_flights,
@@ -65,13 +77,12 @@ def airline_agents(airlines_flights,
     counter = 1 #ID for scheduler
     for airline_name, number_of_flights in airlines_flights.items():
         # Create an AirlineAgent with the specified attributes
-        airline_ = AirlineAgent.AirlineAgent(counter, 
-                                             None, # initialize without model
-                                             airline_name, 
-                                             number_of_flights,
-                                             priority_assignment_strategy,
-                                             desired_time_strategy,
-                                             assign_margins_strategy
+        airline_ = Airline(counter,
+                           airline_name,
+                           number_of_flights,
+                           priority_assignment_strategy,
+                           desired_time_strategy,
+                           assign_margins_strategy
                                             ) 
         airline_list.append(airline_)
         # Increase the counter for agent IDs
@@ -80,34 +91,25 @@ def airline_agents(airlines_flights,
     return airline_list
 
 
-
 list_airline_agents_ = airline_agents(airlines_flights,
                                       priority_assignment_strategy,
                                       desired_time_strategy,
                                       assign_margins_strategy
                                       )
 
+class Platform:
+    def __init__(self, unique_id, base_value_weight_map, percentage_reduction_weight_map, optimization_strategy, equity_handler):
+        self.unique_id = unique_id
+        self.base_value_weight_map = base_value_weight_map
+        self.percentage_reduction_weight_map = percentage_reduction_weight_map
+        self.optimization_strategy = optimization_strategy
+        self.equity_handler = equity_handler
 
 
-platform_agent_= PlatformAgent.PlatformAgent(len(airlines_flights) +1, 
-                                            None, # initialize without model
-                                            base_value_weight_map_,
-                                            percentage_reduction_weight_map_,
-                                            optimization_strategy_,
-                                            bonus_,
-                                            equity_handler_
-                                           )
-
-
-def flights_schedule(list_of_airlines, n_times, seed):
-    # instanciate flight objects in a list
-    scheduled_flights_object_list = [scheduled_flight for airline in list_of_airlines for scheduled_flight in airline.scheduled_flights_objects_list]
-    scheduled_flights_object_list = time_assignment_strategy.assign_time(scheduled_flights_object_list,
-                                                                                 n_times, 
-                                                                                 seed)
-    
-    return scheduled_flights_object_list
-
-
-flight_schedule_ = flights_schedule(list_airline_agents_,n_times_, starting_seed_)
+platform_agent_= Platform(len(airlines_flights) +1,
+                          base_value_weight_map_,
+                          percentage_reduction_weight_map_,
+                          optimization_strategy_,
+                          equity_handler_
+                         )
 

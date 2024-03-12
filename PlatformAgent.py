@@ -15,7 +15,6 @@ class PlatformAgent(mesa.Agent):
                  base_value_weight_map: int,
                  percentage_reduction_weight_map: float,
                  optimization_strategy,
-                 bonus,
                  equity_strategy
                 ):
         '''
@@ -32,7 +31,6 @@ class PlatformAgent(mesa.Agent):
         self.base_value_weight_map = base_value_weight_map
         self.percentage_reduction_weight_map = percentage_reduction_weight_map
         self.optimization_strategy = optimization_strategy 
-        self.bonus = bonus
         self.equity_strategy = equity_strategy
         
         self.weight_map = []
@@ -83,7 +81,7 @@ class PlatformAgent(mesa.Agent):
     def step(self):
         '''Parameters'''
         # Get airline_list from model and parameters
-        self.airline_list = self.model.list_airline_agents
+        self.airline_list = self.model.list_mesa_airline_agents
         self.matrix_preferences = []
         self.regulation_schedule = self.model.slot_array
         
@@ -99,13 +97,24 @@ class PlatformAgent(mesa.Agent):
         #print("weight_map",self.weight_map)
         # Reorder the weight map
         self.reordered_weight_map = self.reorder_weight_map()
-        print("rwm",self.reordered_weight_map)
+        print("\n")
+        print("-----")
+        print("Results PlatformAgent.py")
+        print("\n")
+        print("Weight map")
+        print("\n")
+        print(self.reordered_weight_map)
+        print("\n")
         
         '''optimization''' 
         if self.reordered_weight_map and self.regulation_schedule:
+            print("Optimization process")
+            print("\n")
             self.optimizer = self.optimization_strategy.run_optimizer(flight_list = self.regulation_schedule, 
                                                                  slot_list = self.regulation_schedule, 
                                                                  au_preferences = self.reordered_weight_map)
+
+            #print("optimization output", self.optimizer)
             # assign optimized time to actual flights and provide the new flight list
             self.new_flight_list = self.optimization_strategy.new_flight_list_assign_optimized_time(
                 self.regulation_schedule,
@@ -115,14 +124,19 @@ class PlatformAgent(mesa.Agent):
             
                     
             #print("nl", self.new_flight_list)
-            '''
+            print("\n")
+            print("Optimized flights:")
             for airline in self.airline_list:
                 for actual_flight in airline.step_actual_flights:
-                    print("original_time", 
-                    actual_flight.assigned_time, 
-                    "optimized_time",
-                    actual_flight.optimization_time)
-            '''
+                    print("flight_number",
+                          actual_flight.scheduled_flight.flight_number,
+                          "Scheduled_time",
+                          actual_flight.scheduled_flight.scheduled_time,
+                          "Assigned_time",
+                          actual_flight.assigned_time,
+                          "Optimized_time",
+                          actual_flight.optimization_time
+                         )
         
             '''Equity'''
             if self.new_flight_list.any():
@@ -131,7 +145,6 @@ class PlatformAgent(mesa.Agent):
                                                              optimization_result = self.optimizer,
                                                              airlines_preferences = self.reordered_weight_map,
                                                              base_value_weight_map = self.base_value_weight_map,
-                                                             bonus = self.bonus,
                                                              airline_list = self.airline_list,
                                                              step_number = self.model.step_number)
             else:

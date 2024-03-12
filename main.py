@@ -10,7 +10,7 @@ if __name__ == "__main__":
                         capacity = setup.capacity_,
                         list_airline_agents = setup.list_airline_agents_,
                         platform_agent = setup.platform_agent_,
-                        scheduled_flights_object_list = setup.flight_schedule_)
+                        time_assignment_strategy = setup.time_assignment_strategy)
     
     for i in range(setup.steps):
         model.step()

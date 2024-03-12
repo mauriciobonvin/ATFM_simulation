@@ -74,6 +74,7 @@ class AirlineAgent(mesa.Agent):
         flight_array = self.priority_assignment_strategy.assign_priority(len(self.step_actual_flights),self.model.seed)
         for index, actual_flight in enumerate(self.step_actual_flights):
             actual_flight.priority = flight_array[index]
+            print("Flight number:",actual_flight.scheduled_flight.flight_number,"Priority", actual_flight.priority)
   
 
     def assign_desired_time(self):
@@ -128,12 +129,21 @@ class AirlineAgent(mesa.Agent):
         Perform a step, updating slot array, actual flights, and assigning priorities, desired times,
         margins, and flight preferences.
             """
+        print("\n")
+        print(f"Airline Agent: {self.name}")
+        print("\n")
         self.set_actual_flights_list()
+        print("\n")
+        print("Actual flights priority (1: priority, 0: non priority):")
         self.assign_priority()
         self.assign_desired_time()
+        print("\n")
+        print("Margins assginment and desired time:")
         self.assign_margins()
         self.define_flight_preferences()
-        #print(self.matrix_flight_preferences)
+        print("\n")
+        print("Flight preferences:")
+        print(self.matrix_flight_preferences)
         
         
 

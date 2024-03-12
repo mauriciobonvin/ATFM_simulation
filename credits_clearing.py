@@ -99,8 +99,8 @@ class Clearing:
             index.append(index_new_in_original)
         self.add_util = np.array(add_util)
         self.index = np.array(index)
-        print("add_util", self.add_util)
-        print("index", self.index)
+        #print("add_util", self.add_util)
+        #print("index", self.index)
         return self.add_util, self.index
 
     def net_optimized(self):
@@ -233,7 +233,7 @@ class Clearing:
                     else:
                         net_opt_lst.append(0)
                 if self.utility[i] != self.base_value_weight_map:
-                    print("utility is not achieved by max value")
+                    #print("utility is not achieved by max value")
                     index_ = self.net_index[i]
                     net_opt_lst[index_] = self.net_opt_util[index_]
                 self.net_opt_.append(net_opt_lst)
@@ -360,14 +360,19 @@ class Clearing:
         # utility and cash flow for contested flights
         contested = self.contested_slot_indexes
         if contested.size > 0:
-            print("there are contested slots")
+            #print("there are contested slots")
             cash_flow = self.flattened_cf
             self.movement = self.movement - cash_flow
         bonus = self.net_bonus
         self.movement = self.movement + bonus
         self.movement = np.around(self.movement, decimals=2)
-        print("after cf", self.movement)
-        print("check", sum(self.movement))
+        print("\n")
+        print("-------")
+        print("Credit Clearing results:")
+        print("\n")
+        print("Credit movements", self.movement)
+        print("\n")
+        print("check sum for correctness of calculations (should be 0 or near 0):", sum(self.movement))
         return self.movement
 
     def perform_clearing(self):
@@ -391,11 +396,11 @@ class Clearing:
         self.social_utility()
         return self.clearing()
     
-    def initial_credits(self, airlines_list: list):
+    def initial_credits(self, airlines_list: list, initial_credits_:int):
         all_credit_data_ = []
         airlines = airlines_list
         for airline in airlines:
-            credits = 100
+            credits = initial_credits_
             data_values_ = {'airline': airline.name,
                                    'flight_number': -1,
                                    'assigned_time': 0,
@@ -403,6 +408,7 @@ class Clearing:
                                    'credits': credits,
                                    'step_counter': 0}
             all_credit_data_.append(data_values_)
+            
         return all_credit_data_
             
     def movements_to_credit(self, airlines_list: list, step_number: int):
@@ -416,14 +422,15 @@ class Clearing:
         '''
         all_credit_data = []
         original_list = np.array(self.original_list)
+        #print("original_list", original_list)
         movements_ = self.movement
         airlines = airlines_list
         for airline in airlines:
             credits = 0
             for actual_flight in airline.step_actual_flights:
                 if actual_flight.assigned_time in original_list:
-                    index = np.where(original_list == actual_flight.assigned_time)[0][0]
-                    credits += movements_[index]
+                    index = np.where(original_list == actual_flight.optimization_time)[0][0]
+                    credits = movements_[index]
                     data_values = {'airline': airline.name,
                                    'flight_number': actual_flight.scheduled_flight.flight_number,
                                    'assigned_time': actual_flight.assigned_time,
