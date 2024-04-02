@@ -14,6 +14,8 @@ import AssignMarginsStrategy
 # Platform modules
 import optimization_strategy
 import equity_handler
+import InterveneOptimizationOutputStrategy
+import InterveneWeightMapStrategy
 
 
 # set parameters
@@ -43,7 +45,8 @@ assign_margins_strategy = AssignMarginsStrategy.MarginsRandomAssignmentStrategy(
 # Platform agent strategies
 optimization_strategy_ = optimization_strategy.LinearAssignmentStrategy()
 equity_handler_ = equity_handler.CreditsCLearingStrategy(bonus = 0.1, initial_credits = 100)
-
+intervene_weight_map_ = InterveneWeightMapStrategy.IncreaseWeightMapStrategy(increase_amount = 0)
+intervene_optimization_output_ = InterveneOptimizationOutputStrategy.HighestValueStrategy()
 # strategies used during simulation
 # Regulation strategies
 window_strategy_ = WindowStrategy.RandomWindowStrategy()

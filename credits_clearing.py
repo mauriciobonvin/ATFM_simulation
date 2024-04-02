@@ -4,6 +4,10 @@ import pandas as pd
 import random
 import copy
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 class Clearing:
     
     """
@@ -366,13 +370,13 @@ class Clearing:
         bonus = self.net_bonus
         self.movement = self.movement + bonus
         self.movement = np.around(self.movement, decimals=2)
-        print("\n")
-        print("-------")
-        print("Credit Clearing results:")
-        print("\n")
-        print("Credit movements", self.movement)
-        print("\n")
-        print("check sum for correctness of calculations (should be 0 or near 0):", sum(self.movement))
+        #print("\n")
+        logger.info("-------")
+        logger.info("Credit Clearing results:")
+        logger.info("\n")
+        logger.info("Credit movements: %s", self.movement)
+        logger.info("\n")
+        logger.info("check sum for correctness of calculations (should be 0 or near 0): %s", sum(self.movement))
         return self.movement
 
     def perform_clearing(self):
@@ -402,11 +406,8 @@ class Clearing:
         for airline in airlines:
             credits = initial_credits_
             data_values_ = {'airline': airline.name,
-                                   'flight_number': -1,
-                                   'assigned_time': 0,
-                                   'optimization_time': 0,
-                                   'credits': credits,
-                                   'step_counter': 0}
+                                  'credits': credits,
+                                   'step': 0}
             all_credit_data_.append(data_values_)
             
         return all_credit_data_
@@ -423,7 +424,7 @@ class Clearing:
         all_credit_data = []
         original_list = np.array(self.original_list)
         #print("original_list", original_list)
-        movements_ = self.movement
+        movements_ = self.movement *-1
         airlines = airlines_list
         for airline in airlines:
             credits = 0
@@ -433,10 +434,12 @@ class Clearing:
                     credits = movements_[index]
                     data_values = {'airline': airline.name,
                                    'flight_number': actual_flight.scheduled_flight.flight_number,
+                                   'scheduled_time': actual_flight.scheduled_flight.scheduled_time,
                                    'assigned_time': actual_flight.assigned_time,
+                                   'desired_time': actual_flight.desired_time,
                                    'optimization_time': actual_flight.optimization_time,
                                    'credits': credits,
-                                   'step_counter': step_number}
+                                   'step': step_number}
                     all_credit_data.append(data_values)
         return all_credit_data
             

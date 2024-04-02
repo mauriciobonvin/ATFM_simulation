@@ -4,6 +4,9 @@ import WindowStrategy
 import RegulationStrategy
 import Flight
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Regulation:
     def __init__(self,
@@ -22,40 +25,40 @@ class Regulation:
         self.window_strategy = window_strategy
         self.regulation_strategy = regulation_strategy
         self.capacity = capacity
-        print("--")
-        print("Outputs of file Regulation.py")
-        print("\n")
+        logger.info("--")
+        logger.info("Outputs of file Regulation.py")
+        logger.info("\n")
         
     def generate_window(self):
         window_ = self.window_strategy.window(self.seed, self.n_times)
         self.start = window_[0]
         self.end = self.start + window_[1] - 1
 
-        print(f"Start of the regulation in time number:{self.start}")
-        print(f"End of the regulation in time number:{self.end}")
-        print("\n")
+        logger.info("Start of the regulation in time number:%s",self.start)
+        logger.info("End of the regulation in time number:%s",self.end)
+        logger.info("\n")
         
     def delayed_flights(self):
         self.delayed_flights_ = []
-        print(f"List of flights and its scheduled time (scheduled times goes from 0 until {self.n_times-1}):")
+        logger.info("List of flights and its scheduled time (scheduled times goes from 0 until %s):",self.n_times-1)
         for flight in self.scheduled_flights_object_list:
-            print("Flight number:",flight.flight_number,"Scheduled time:", flight.scheduled_time)
+            logger.info("Flight number:%s, Scheduled time:%s",flight.flight_number,flight.scheduled_time)
             if flight.scheduled_time in range(self.start, self.end):
                 self.delayed_flights_.append(flight.scheduled_time)
         self.delayed_flights_.sort()
-        print("\n")
-        print("List of delayed flights:")
-        print(self.delayed_flights_)
-        print("\n")
+        logger.info("\n")
+        logger.info("List of delayed flights (showing scheduled time):")
+        logger.info(self.delayed_flights_)
+        logger.info("\n")
         
     def run_regulation_strategy(self):
         self.regulated_times = self.regulation_strategy.regulation(self.delayed_flights_,
                                                                    self.start,
                                                                    self.end, 
                                                                    self.capacity)
-        print("List of available time slots after regulation applied:")
-        print(self.regulated_times)
-        print("\n")
+        logger.info("List of available time slots after regulation applied:")
+        logger.info(self.regulated_times)
+        logger.info("\n")
         
     def assign_slots(self):
         #print("o", self.start, self.end)
@@ -67,9 +70,7 @@ class Regulation:
             
         while self.delayed_flights_:
             if not self.regulated_times:
-                #print("not")
                 if last_regulated_time in list_of_scheduled_times and last_regulated_time not in self.delayed_flights_:
-                    #print("not in")
                     self.delayed_flights_.append(last_regulated_time)
                     scheduled_flight = [flight for flight in self.scheduled_flights_object_list if flight.scheduled_time == self.delayed_flights_[0]][0]
                     actual_flight_ = Flight.ActualFlight(self.step_number, scheduled_flight)
@@ -78,7 +79,6 @@ class Regulation:
                     self.delayed_flights_.pop(0)
                     last_regulated_time += 1
                 else:
-                    #print("in")
                     scheduled_flight = [flight for flight in self.scheduled_flights_object_list if flight.scheduled_time == self.delayed_flights_[0]][0]
                     actual_flight_ = Flight.ActualFlight(self.step_number, scheduled_flight)
                     actual_flight_.assigned_time = last_regulated_time
@@ -88,7 +88,6 @@ class Regulation:
            
         
             else:
-                #print("yes")
                 scheduled_time = self.delayed_flights_[0]
                 if scheduled_time <= self.regulated_times[0]:
                     scheduled_flight = [flight for flight in self.scheduled_flights_object_list if flight.scheduled_time == scheduled_time][0]
@@ -100,9 +99,13 @@ class Regulation:
                 else:
                     self.regulated_times.pop(0)
 
-        print("List of affected flights, scheduled times and assigned times after the regulation:")
+        logger.info("List of affected flights, scheduled times and assigned times after the regulation:")
         for flight in self.actual_flights:
-            print("flight number:", flight.scheduled_flight.flight_number, "Scheduled time:", flight.scheduled_flight.scheduled_time, "Assigned time:", flight.assigned_time)
+            logger.info("flight number:%s, Scheduled time:%s, Assigned time: %s",
+                        flight.scheduled_flight.flight_number,
+                        flight.scheduled_flight.scheduled_time,
+                        flight.assigned_time
+                       )
             flight.scheduled_flight.list_of_actual_flights.append(flight)
             
     def assigned_time_array(self):
@@ -111,10 +114,10 @@ class Regulation:
         for flight in self.actual_flights:
             self.assigned_scheduled_differences.append(flight.assigned_time)
             
-        print("\n")
-        print("List of new slots assigned to delayed flights:")
-        print(self.assigned_scheduled_differences)
-        print("--")
+        logger.info("\n")
+        logger.info("List of new slots assigned to delayed flights:")
+        logger.info(self.assigned_scheduled_differences)
+        logger.info("--")
         return self.assigned_scheduled_differences
     
     def start_regulation(self):

@@ -1,6 +1,11 @@
 import mesa
 import numpy as np
 np.set_printoptions(suppress=True, precision=2)
+import logging
+import json
+
+
+logger = logging.getLogger(__name__)
 
 
 class PlatformAgent(mesa.Agent):
@@ -15,7 +20,9 @@ class PlatformAgent(mesa.Agent):
                  base_value_weight_map: int,
                  percentage_reduction_weight_map: float,
                  optimization_strategy,
-                 equity_strategy
+                 equity_strategy,
+                 intervene_weight_map_strategy,
+                 intervene_optimization_output_strategy
                 ):
         '''
         Initialize a PlatformAgent instance.
@@ -32,6 +39,8 @@ class PlatformAgent(mesa.Agent):
         self.percentage_reduction_weight_map = percentage_reduction_weight_map
         self.optimization_strategy = optimization_strategy 
         self.equity_strategy = equity_strategy
+        self.intervene_weight_map_strategy = intervene_weight_map_strategy
+        self.intervene_optimization_output_strategy = intervene_optimization_output_strategy
         
         self.weight_map = []
 
@@ -66,18 +75,78 @@ class PlatformAgent(mesa.Agent):
             preferences_matrix_row[desired_slot_index] = self.base_value_weight_map
             return self.weight_map.append(preferences_matrix_row)
 
-    def reorder_weight_map(self):
+    def reorder_weight_map(self, weight_map):
         '''
         Reorder the weight map for the optimizer.
 
         Returns:
             list: Reordered weight map.
         '''
-        new_order = sorted(range(len(self.weight_map)), key=lambda i: next(
-            (idx for idx, val in enumerate(self.weight_map[i]) if np.any(val == 0)), len(self.weight_map[i])))
-        reordered_weight_map = [self.weight_map[i] for i in new_order]
+        new_order = sorted(range(len(weight_map)), key=lambda i: next(
+            (idx for idx, val in enumerate(weight_map[i]) if np.any(val == 0)), len(weight_map[i])))
+        reordered_weight_map = [weight_map[i] for i in new_order]
         return reordered_weight_map
+    
+    def new_flight_list_(self, original_schedule, optimization_result):
+        # Ensure inputs are NumPy arrays
+        original_schedule = np.array(original_schedule)
+        optimization_result = np.array(optimization_result)
+            
+        # Find the indices of '1' in each row
+        positions = np.where(optimization_result == 1)[1]
+        # Reorder the original schedule based on the positions
+        reordered_numbers = original_schedule[positions]
+        return reordered_numbers
 
+    def assign_optimized_time_(self, original_schedule, new_list, airlines_list):
+        #Function to assign optimized time to actual flights
+        original_schedule = np.array(original_schedule)
+        new_schedule = np.array(new_list)
+        for airline in airlines_list:
+            for actual_flight in airline.step_actual_flights:
+                if actual_flight.assigned_time in original_schedule:
+                    index = np.where(original_schedule == actual_flight.assigned_time)[0][0]
+                    actual_flight.optimization_time = new_schedule[index]
+                else:
+                    pass
+    
+    def convert_to_json_serializable(self, data):
+        """
+        Recursively convert NumPy arrays, int32 values, and float values to JSON serializable types.
+    
+        Args:
+        - data: Data to be converted.
+    
+        Returns:
+        - JSON serializable data.
+        """
+        if isinstance(data, np.ndarray):
+            return data.tolist()
+        elif isinstance(data, (np.int32, np.int64)):
+            return int(data)
+        elif isinstance(data, (np.float32, np.float64)):
+            return float(data)
+        elif isinstance(data, dict):
+            return {key: self.convert_to_json_serializable(value) for key, value in data.items()}
+        elif isinstance(data, list):
+            return [self.convert_to_json_serializable(item) for item in data]
+        else:
+            return data
+    
+    def write_list_of_dicts_to_json(self, data, filename):
+        """
+        Write a list of dictionaries to a JSON file.
+    
+        Args:
+        - data: List of dictionaries to be written to JSON.
+        - filename: Name of the JSON file to write to.
+        """
+        # Convert NumPy arrays, int32 values, and float values to JSON serializable types
+        converted_data = self.convert_to_json_serializable(data)
+        # Write data to the JSON file
+        with open(filename, 'w') as json_file:
+            json.dump(converted_data, json_file)
+            
     def step(self):
         '''Parameters'''
         # Get airline_list from model and parameters
@@ -95,60 +164,68 @@ class PlatformAgent(mesa.Agent):
         for row in self.matrix_preferences:
             self.convert_to_weight_map(row)
         #print("weight_map",self.weight_map)
+
+        # Apply intervention to weight map
+        self.intervened_weight_map = self.intervene_weight_map_strategy.intervene_weight_map(weight_map = self.weight_map)
+
         # Reorder the weight map
-        self.reordered_weight_map = self.reorder_weight_map()
-        print("\n")
-        print("-----")
-        print("Results PlatformAgent.py")
-        print("\n")
-        print("Weight map")
-        print("\n")
-        print(self.reordered_weight_map)
-        print("\n")
+        self.reordered_weight_map = self.reorder_weight_map(self.intervened_weight_map)
+        logger.info("\n")
+        logger.info("-----")
+        logger.info("Results PlatformAgent.py")
+        logger.info("\n")
+        logger.info("Weight map")
+        logger.info("\n")
+        logger.info(self.reordered_weight_map)
+        logger.info("\n")
         
         '''optimization''' 
         if self.reordered_weight_map and self.regulation_schedule:
-            print("Optimization process")
-            print("\n")
+            logger.info("Optimization process")
+            logger.info("\n")
             self.optimizer = self.optimization_strategy.run_optimizer(flight_list = self.regulation_schedule, 
                                                                  slot_list = self.regulation_schedule, 
                                                                  au_preferences = self.reordered_weight_map)
-
-            #print("optimization output", self.optimizer)
-            # assign optimized time to actual flights and provide the new flight list
-            self.new_flight_list = self.optimization_strategy.new_flight_list_assign_optimized_time(
-                self.regulation_schedule,
-                self.optimizer,
-                self.airline_list
+            
+            # intevene optimization output
+            self.intervene_optimization_output = self.intervene_optimization_output_strategy.intervene_optimization_output(
+                optimization_results = self.optimizer,
+                weight_map = self.reordered_weight_map,
             )
             
-                    
-            #print("nl", self.new_flight_list)
-            print("\n")
-            print("Optimized flights:")
+            # define new flight list
+            self.new_flight_list = self.new_flight_list_(self.regulation_schedule, self.intervene_optimization_output)
+
+            #assign optimized time to actual flights
+            self.assign_optimized_time_(self.regulation_schedule, self.new_flight_list, self.airline_list)
+
+            logger.info("\n")
+            logger.info("Optimized flights:")
             for airline in self.airline_list:
                 for actual_flight in airline.step_actual_flights:
-                    print("flight_number",
-                          actual_flight.scheduled_flight.flight_number,
-                          "Scheduled_time",
-                          actual_flight.scheduled_flight.scheduled_time,
-                          "Assigned_time",
-                          actual_flight.assigned_time,
-                          "Optimized_time",
-                          actual_flight.optimization_time
+                    logger.info("flight_number:%s, Scheduled_time:%s, Assigned_time: %s, Optimized_time:%s",
+                                actual_flight.scheduled_flight.flight_number,
+                                actual_flight.scheduled_flight.scheduled_time,
+                                actual_flight.assigned_time, 
+                                actual_flight.optimization_time
                          )
         
             '''Equity'''
             if self.new_flight_list.any():
                 self.equity = self.equity_strategy.run_equity(original_list = self.regulation_schedule,
                                                               new_list = self.new_flight_list,
-                                                             optimization_result = self.optimizer,
+                                                             optimization_result = self.intervene_optimization_output,
                                                              airlines_preferences = self.reordered_weight_map,
                                                              base_value_weight_map = self.base_value_weight_map,
                                                              airline_list = self.airline_list,
                                                              step_number = self.model.step_number)
+                # export output data as json file
+                self.write_list_of_dicts_to_json(self.equity_strategy.all_credit_data, "output_data.json")
             else:
-                pass
+                print("There was no new flight list")
+                logger.info("There was no new flight list")
         else:
-            pass
+            print("There was no weight map or no regulation schedule")
+            logger.info("There was no weight map or no regulation schedule")
 
+        

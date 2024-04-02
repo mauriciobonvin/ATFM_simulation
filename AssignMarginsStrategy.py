@@ -20,10 +20,10 @@ class MarginsRandomAssignmentStrategy(AssignMarginsStrategy):
 
         start = np.where(slot_array_ == scheduled_time_)[0][0] if any(slot_array_ == scheduled_time_) else  np.where(slot_array_ == smaller_possible_number)[0][0]
         desired_time_index = np.where(slot_array_ == actual_flight.desired_time)[0][0]
-        print("Priority strategy for flight",actual_flight.scheduled_flight.flight_number,"-> Lower margin:",start,"Upper margin:",end,"Desired time:",desired_time_index)
+        #print("Priority strategy for flight",actual_flight.scheduled_flight.flight_number,"-> Lower margin:",start,"Upper margin:",end,"Desired time:",desired_time_index)
         lower_margin = random.randint(start, desired_time_index)
         upper_margin = random.randint(desired_time_index, end)
     
-        return (lower_margin, upper_margin)
+        return (lower_margin, upper_margin, desired_time_index)
   
 

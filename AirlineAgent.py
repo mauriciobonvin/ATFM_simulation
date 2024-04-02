@@ -3,6 +3,10 @@ import numpy as np
 np.set_printoptions(suppress=True, precision=2)
 import Flight
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class AirlineAgent(mesa.Agent):
     
@@ -74,7 +78,10 @@ class AirlineAgent(mesa.Agent):
         flight_array = self.priority_assignment_strategy.assign_priority(len(self.step_actual_flights),self.model.seed)
         for index, actual_flight in enumerate(self.step_actual_flights):
             actual_flight.priority = flight_array[index]
-            print("Flight number:",actual_flight.scheduled_flight.flight_number,"Priority", actual_flight.priority)
+            logger.info("Flight number:%s, Priority:%s",
+                        actual_flight.scheduled_flight.flight_number,
+                        actual_flight.priority
+                       )
   
 
     def assign_desired_time(self):
@@ -94,6 +101,12 @@ class AirlineAgent(mesa.Agent):
             if actual_flight.desired_time:
                 margin_tuple = self.assign_margins_strategy.assign_margins(actual_flight,self.model.slot_array,self.model.seed)
                 actual_flight.margins = margin_tuple
+                logger.info("Priority strategy for flight %s -> Lower margin:%s, Upper margin:%s, Desired time:%s",
+                           actual_flight.scheduled_flight.flight_number,
+                            margin_tuple[0],
+                            margin_tuple[1],
+                            margin_tuple[2]
+                           )
                 
     def define_flight_preferences(self):
         """
@@ -129,21 +142,21 @@ class AirlineAgent(mesa.Agent):
         Perform a step, updating slot array, actual flights, and assigning priorities, desired times,
         margins, and flight preferences.
             """
-        print("\n")
-        print(f"Airline Agent: {self.name}")
-        print("\n")
+        logger.info("\n")
+        logger.info(f"Airline Agent: {self.name}")
+        logger.info("\n")
         self.set_actual_flights_list()
-        print("\n")
-        print("Actual flights priority (1: priority, 0: non priority):")
+        logger.info("\n")
+        logger.info("Actual flights priority (1: priority, 0: non priority):")
         self.assign_priority()
         self.assign_desired_time()
-        print("\n")
-        print("Margins assginment and desired time:")
+        logger.info("\n")
+        logger.info("Margins assginment and desired time:")
         self.assign_margins()
         self.define_flight_preferences()
-        print("\n")
-        print("Flight preferences:")
-        print(self.matrix_flight_preferences)
+        logger.info("\n")
+        logger.info("Flight preferences:")
+        logger.info(self.matrix_flight_preferences)
         
         
 

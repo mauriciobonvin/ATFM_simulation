@@ -10,7 +10,6 @@ import AirlineAgent
 import PlatformAgent
 
 
-
 class ATFMSimulationModel(mesa.Model):
     
     def __init__(self, **kwargs):
@@ -39,7 +38,9 @@ class ATFMSimulationModel(mesa.Model):
                                                          self.platform_agent.base_value_weight_map,
                                                          self.platform_agent.percentage_reduction_weight_map,
                                                          self.platform_agent.optimization_strategy,
-                                                         self.platform_agent.equity_handler
+                                                         self.platform_agent.equity_handler,
+                                                         self.intervene_weight_map_strategy,
+                                                         self.intervene_optimization_output_strategy 
                                                          )
         self.add_agent_to_scheduler(mesa_platform_agent)
 
@@ -63,6 +64,7 @@ class ATFMSimulationModel(mesa.Model):
                                                                                  n_times, 
                                                                                  seed)
         return self.scheduled_flights_object_list
+
         
     def step(self):
         """Advance the model by one step."""
@@ -79,5 +81,5 @@ class ATFMSimulationModel(mesa.Model):
         self.scheduler.step()
         self.seed += 1
         self.step_number += 1
-        
+                
 

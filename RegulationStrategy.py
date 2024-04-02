@@ -21,3 +21,6 @@ class NoCapacityStrategy(RegulationStrategy):
     def regulation(self, delayed_flights, start, end, capacity = 2):
         pass
 
+class NEwStrategy(RegulationStrategy):
+    def regulation(self, delayed_flights, start, end, capacity = 2):
+        pass

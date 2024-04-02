@@ -1,6 +1,9 @@
 import credits_clearing
 import pandas as pd
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class EquityStrategy:
     
@@ -19,6 +22,7 @@ class CreditsCLearingStrategy(EquityStrategy):
         self.bonus = bonus
         self.initial_credits = initial_credits
         self.initial_credits_bool = False
+        
     def run_equity(self,
                    original_list: list,
                    new_list: list,
@@ -42,20 +46,20 @@ class CreditsCLearingStrategy(EquityStrategy):
             self.initial_credits_bool = True
             credits_data = clearing.movements_to_credit(airline_list,
                                                         step_number)
-            print("\n")
-            print(f"Credits for step number {step_number}:")
+            logger.info("\n")
+            logger.info(f"Credits for step number {step_number}:")
             df = pd.DataFrame(credits_data)
-            print(df)
-            print("\n")
+            logger.info(df)
+            logger.info("\n")
             CreditsCLearingStrategy.all_credit_data.extend(initial_credits)
             CreditsCLearingStrategy.all_credit_data.extend(credits_data)
 
-            print("Credits standing")
+            logger.info("Credits standing")
             df2 = pd.DataFrame(CreditsCLearingStrategy.all_credit_data)
             result = df2.groupby('airline')['credits'].sum().reset_index()
-            print(result)
-            print("\n")
-            print("\n")
+            logger.info(result)
+            logger.info("\n")
+
         else:
             
             clearing = credits_clearing.Clearing(original_list,
@@ -67,14 +71,14 @@ class CreditsCLearingStrategy(EquityStrategy):
             clearing.perform_clearing()
             credits_data = clearing.movements_to_credit(airline_list,
                                                         step_number)
-            print("\n")
-            print(f"Credits for step number {step_number}:")
+            logger.info("\n")
+            logger.info(f"Credits for step number {step_number}:")
             df = pd.DataFrame(credits_data)
-            print(df)
+            logger.info(df)
             CreditsCLearingStrategy.all_credit_data.extend(credits_data)
-            print("\n")
-            print("Credits standing")
+            logger.info("\n")
+            logger.info("Credits standing")
             df2 = pd.DataFrame(CreditsCLearingStrategy.all_credit_data)
             result = df2.groupby('airline')['credits'].sum().reset_index()
-            print(result)
-            print("\n")
+            logger.info(result)
+            logger.info("\n")
