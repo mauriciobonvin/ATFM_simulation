@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/753322308.svg)](https://doi.org/10.5281/zenodo.15149267)
+
 # Operating the Framework  
 This is a comprehensive guide on how to operate the developed ATFM simulation framework effectively. It is designed to help users understand the practical steps involved in deploying and utilizing the framework, from initial setup to executing simulation steps. The following subsections cover the installation process, the configuration of the framework, and a demonstration with an example.  
 
@@ -145,3 +147,5 @@ for i in range(Setup.steps):
 
 ## Output Data  
 The output data of the simulation framework is stored in a machine-readable format as a JSON file named **`Output_data.json`**. The log file **`Simulation_log.log`** is also generated, containing intermediate results for traceability.  
+
+
