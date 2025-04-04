@@ -3,6 +3,7 @@ class ScheduledFlight:
     def __init__(self, flight_number):
         self.flight_number = flight_number
         self.scheduled_time = None
+        self.time_assignment_seed = None
         self.list_of_actual_flights = []
         
 
@@ -17,5 +18,6 @@ class ActualFlight:
         self.desired_time = None
         self.margins = None
         self.optimization_time = None
+        self.intervened = 0
         
         

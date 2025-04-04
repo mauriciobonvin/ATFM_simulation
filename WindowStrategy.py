@@ -11,6 +11,17 @@ class WindowStrategy:
 class RandomWindowStrategy(WindowStrategy):
     def window(self, seed, n_times):
         random.seed(seed)
-        start = np.random.randint(0, n_times)
-        width = np.random.randint(1, n_times/2)
+        start = random.randint(0, n_times)
+        width = random.randint(1, int(n_times//2))
+        return start, width
+
+
+class PredefinedWindowStrategy(WindowStrategy):
+    def __init__(self, defined_window):
+        self.defined_window = defined_window
+        
+    def window(self, seed, n_times):
+        tuple_ = self.defined_window[seed]
+        start = tuple_[0]
+        width = tuple_[1]
         return start, width
